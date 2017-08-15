@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<title>mapcache XYZ demo</title>
+<link rel="stylesheet" href="https://openlayers.org/en/v4.3.1/css/ol.css" type="text/css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script src="https://openlayers.org/en/v4.3.1/build/ol.js" type="text/javascript"></script>
+
+<style type="text/css">
+  html { height: 100% }
+  body { height: 100%; margin: 0px; padding: 0px }
+  #map { height: 100% }
+</style>
+</head>
+
+<body>
+ <div id="map" class="map"></div> 
+</body>
+
+<script type="text/javascript">
+urlTemplate="http://www.navcities.com/mapcache/tms/1.0.0/lintermediaire@NavG/{z}/{x}/{y}.png";
+var attribution = new ol.Attribution({
+        html: 'Copyright:© 2017 Navcities'
+      });
+var projection = ol.proj.get('EPSG:3857');
+var tileSize = 256;
+	  
+function rx (xt, zoom) {
+	var x= xt;
+	var tileRange = 1 << zoom;
+	// repeat accross x-axis
+	if (x < 0 || x >= tileRange) {
+		x = (x % tileRange + tileRange) % tileRange;
+	}
+	return x;
+}
+
+function ry (yt, zoom) {
+	var y= yt;
+	var bound = Math.pow(2, zoom);
+	var tileRange = 1 << zoom;
+	if (y < 0 || y >= tileRange) {
+		y=-y;
+	}
+	y=bound-y-1;
+	return y;
+}
+	 
+var map = new ol.Map({
+        target: 'map',
+        layers: [
+          new ol.layer.Tile({
+            source: new ol.source.XYZ({
+              attributions: [attribution],
+              maxZoom: 16,
+              projection: projection,
+              tileSize: tileSize,
+              tileUrlFunction: function(tileCoord) {
+                return urlTemplate.replace('{z}', (tileCoord[0]))
+                                  .replace('{x}', rx(tileCoord[1],tileCoord[0]))
+                                  .replace('{y}', ry(tileCoord[2]+1,tileCoord[0]));
+              },
+              wrapX: false
+            })
+          })
+        ],
+        view: new ol.View({
+          center: [0, 0],
+          projection: projection,
+          zoom: 0,
+          minZoom: 0
+        })
+      });
+</script>
+</html>
